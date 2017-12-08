@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  front:
+    build: .
+    ports:
+      - "9000:9000"
+    links:
+      - nginx
+      - mysql
+      - mongo
+      - redis
+      - memcached
+      - elasticsearch
+      - rabbitmq
+    volumes:
+      - ./www:/var/www
+      - ./sites:/etc/nginx/conf.d
+      - ./logs:/var/log/supervisor
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./:/var/www
+    ports:
+      - "80:80"
+
+  mysql:
+    image: mysql
+    ports:
+      - ${MYSQL_EXTERNAL_PORT}:${MYSQL_INTERNAL_PORT}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+
+  memcached:
+    build:
+      context: conf/memcached
+      dockerfile: Dockerfile
+    ports:
+      - ${MEMCACHED_EXTERNAL_PORT}:${MEMCACHED_INTERNAL_PORT}
+    restart: always
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  elasticsearch:
+    image: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  rabbitmq:
+    image: rabbitmq:3.6.1-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
